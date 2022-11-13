@@ -2,12 +2,11 @@ import typer
 
 from pathlib import Path
 
-
+from rich import print
 import pandas as pd
 
 from process import proces_italy, process_world
 from create_charts import chart_world
-
 from render import render_doc
 
 
@@ -25,18 +24,34 @@ def main():
         print("Files present. Ok!")
 
         # process world stats
+        print("Processing world statistics...")
         world_data = read_world_stats(world_stats)
 
         # process italy stats
+        print("Processing Italy statistics...")
         italy_data = read_italy_stats(italy_stats)
 
-        render_doc(world_data=world_data, italy_data=italy_data)
+        print("Rendering report...")
+        render_doc(
+            world_data=world_data,
+            italy_data=italy_data,
+            report_name=get_period(world_stats),
+        )
 
     else:
         print(
             f"There must be exactly two excel files named {world_stats} and {italy_stats}"
         )
         raise typer.Exit()
+
+
+def get_period(filename):
+    header = pd.read_excel(filename, index_col=None, usecols="A", header=1, nrows=0)
+
+    full_header = header.columns.values[0]
+    period = full_header.split("PERIOD")[1].split("20 naj")[0][:-1]
+
+    return period
 
 
 def read_world_stats(world_stats):
@@ -61,7 +76,7 @@ def read_world_stats(world_stats):
     chart_world(data=final_world, value="Importazioni")
     chart_world(data=final_world, value="Interscambio")
 
-    final_world.to_excel("Serbia-Mondo.xlsx", index=False)
+    final_world.to_excel("output/Serbia-Mondo.xlsx", index=False)
 
     return final_world
 
@@ -77,7 +92,7 @@ def read_italy_stats(italy_stats):
     chart_world(data=final_italy, value="Interscambio", world=False)
 
     # save to excel file
-    final_italy.to_excel("Serbia-Italia.xlsx", index=False)
+    final_italy.to_excel("output/Serbia-Italia.xlsx", index=False)
 
     return final_italy
 

@@ -43,11 +43,7 @@ def chart_world(data, top=10, value="Esportazioni", world=True):
     # export as static image
     filename = value + ".png"
     if world:
-        filename = "world-" + filename
+        filename = "output/world-" + filename
     else:
-        filename = "italy-" + filename
+        filename = "output/italy-" + filename
     pio.write_image(fig, filename)
-
-
-# data_canada = px.data.gapminder().query("country == 'Canada'")
-# fig = px.bar(data_canada, x='year', y='pop')
