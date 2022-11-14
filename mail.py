@@ -7,6 +7,8 @@ import base64
 import sendgrid
 from sendgrid.helpers.mail import *
 
+from zipReport import create_zip
+
 SENDGRID_ID = config("SENDGRID_KEY", cast=str)
 
 
@@ -28,6 +30,8 @@ def send_report(HTMLcontent,
                 subject,
                 content,
                 html_content=HTMLcontent)
+
+    create_zip()
 
     with open(reportName, "rb") as f:
         data = f.read()

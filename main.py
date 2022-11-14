@@ -2,14 +2,23 @@ import typer
 
 from pathlib import Path
 
+import datetime
+
 from rich import print
 import pandas as pd
-
+from decouple import config
 from email_validator import validate_email, EmailNotValidError
 
 from process import proces_italy, process_world
 from create_charts import chart_world
 from render import render_doc
+
+from deta import Deta  # Import Deta
+
+# Initialize with a Project Key
+deta_project_key = config("DETA_PROJECT_KEY", cast=str)
+deta = Deta(deta_project_key)
+drive = deta.Drive("statistics")
 
 
 def main(email: str = typer.Argument(None)):
@@ -55,8 +64,11 @@ def main(email: str = typer.Argument(None)):
 
         if (rendered and email):
             from mail import send_report
+
+            day = str(datetime.date.today())
+            filename = 'report-' + day + '.zip'
             send_report(HTMLcontent="<h2>Report statistica</h2>",
-                        reportName='report-2022-11-13.zip',
+                        reportName=filename,
                         email=email)
 
     else:
@@ -75,6 +87,8 @@ def get_period(filename):
 
     full_header = header.columns.values[0]
     period = full_header.split("PERIOD")[1].split("20 naj")[0][:-1]
+
+    print("PERIOD:", period)
 
     return period
 
@@ -103,6 +117,11 @@ def read_world_stats(world_stats):
     chart_world(data=final_world, value="Interscambio")
 
     final_world.to_excel("output/Serbia-Mondo.xlsx", index=False)
+    final_world.to_csv("output/Serbia-Mondo.csv", index=False)
+
+    f = open('output/Serbia-Mondo.csv', 'r')
+    drive.put('Serbia-Mondo.csv', f)
+    f.close()
 
     return final_world
 
@@ -119,6 +138,12 @@ def read_italy_stats(italy_stats):
 
     # save to excel file
     final_italy.to_excel("output/Serbia-Italia.xlsx", index=False)
+
+    final_italy.to_csv("output/Serbia-Italia.csv", index=False)
+
+    f = open('output/Serbia-Italia.csv', 'r')
+    drive.put('Serbia-Italia.csv', f)
+    f.close()
 
     return final_italy
 

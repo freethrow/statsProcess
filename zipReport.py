@@ -20,4 +20,4 @@ def create_zip():
                 zipObj.write(filePath, basename(filePath))
 
 
-create_zip()
+#create_zip()
