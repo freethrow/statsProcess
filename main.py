@@ -5,12 +5,29 @@ from pathlib import Path
 from rich import print
 import pandas as pd
 
+from email_validator import validate_email, EmailNotValidError
+
 from process import proces_italy, process_world
 from create_charts import chart_world
 from render import render_doc
 
 
-def main():
+def main(email: str = typer.Argument(None)):
+
+    if email:
+        print("Sending report to:", email)
+
+        try:
+            # Check that the email address is valid.
+            validation = validate_email(email)
+
+        except EmailNotValidError as e:
+            # Email is not valid.
+            # The exception message is human-readable.
+            print(str(e))
+
+    else:
+        print("Not sending email")
 
     # check for existance of files otherwise exit
 
@@ -32,11 +49,15 @@ def main():
         italy_data = read_italy_stats(italy_stats)
 
         print("Rendering report...")
-        render_doc(
-            world_data=world_data,
-            italy_data=italy_data,
-            report_name=get_period(world_stats),
-        )
+        rendered = render_doc(world_data=world_data,
+                              italy_data=italy_data,
+                              report_name=get_period(world_stats))
+
+        if (rendered and email):
+            from mail import send_report
+            send_report(HTMLcontent="<h2>Report statistica</h2>",
+                        reportName='report-2022-11-13.zip',
+                        email=email)
 
     else:
         print(
@@ -46,7 +67,11 @@ def main():
 
 
 def get_period(filename):
-    header = pd.read_excel(filename, index_col=None, usecols="A", header=1, nrows=0)
+    header = pd.read_excel(filename,
+                           index_col=None,
+                           usecols="A",
+                           header=1,
+                           nrows=0)
 
     full_header = header.columns.values[0]
     period = full_header.split("PERIOD")[1].split("20 naj")[0][:-1]
@@ -56,18 +81,19 @@ def get_period(filename):
 
 def read_world_stats(world_stats):
 
-    w_data_exp = pd.read_excel(
-        world_stats, sheet_name="izvoz", skiprows=2, usecols="A:F"
-    ).dropna()
+    w_data_exp = pd.read_excel(world_stats,
+                               sheet_name="izvoz",
+                               skiprows=2,
+                               usecols="A:F").dropna()
 
-    w_data_imp = pd.read_excel(
-        world_stats, sheet_name="uvoz", skiprows=2, usecols="A:F"
-    ).dropna()
+    w_data_imp = pd.read_excel(world_stats,
+                               sheet_name="uvoz",
+                               skiprows=2,
+                               usecols="A:F").dropna()
 
     # concatenate the dataframes
-    w_data = pd.concat([w_data_exp, w_data_imp], ignore_index=True).drop_duplicates(
-        ignore_index=True
-    )
+    w_data = pd.concat([w_data_exp, w_data_imp],
+                       ignore_index=True).drop_duplicates(ignore_index=True)
 
     # save to excel file
     final_world = process_world(w_data)

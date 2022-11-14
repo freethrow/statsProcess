@@ -53,6 +53,3 @@ def send_report(HTMLcontent,
     except Exception as e:
         print(e)
         print("Could not send email")
-
-
-send_report(HTMLcontent="<h2>Eccolo!</h2>", reportName='report-2022-11-13.zip')

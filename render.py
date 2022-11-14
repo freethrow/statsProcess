@@ -23,7 +23,7 @@ def num_to_curr(value):
     return "{:,.0f},000 EUR".format(float(value))
 
 
-def render_doc(world_data, italy_data, report_name):
+def render_doc(world_data, italy_data, report_name, toPdf=True):
 
     # add totals for world and italy
 
@@ -169,9 +169,9 @@ def render_doc(world_data, italy_data, report_name):
     doc.render(context)
 
     output_name = f"output/ReportCommercio{report_name}.docx"
-
     doc.save(output_name)
 
     from docx2pdf import convert
-
     convert(output_name)
+
+    return True
